@@ -157,7 +157,7 @@ def show_result(title: str, data: dict):
             atk_total = data.get("Rolagem Acerto") or data.get("Ataque") or data.get("Acerto")
             cd_tr     = data.get("CD do TR") or data.get("CD")
             if atk_total is not None:
-                st.metric("Total", atk_total)
+                st.metric("Rolagem Ataque", atk_total)
             if cd_tr is not None:
                 st.metric("CD do TR", cd_tr)
 
