@@ -8,7 +8,7 @@ import numpy as np
 # ---------------------------
 # Configuração da página
 # ---------------------------
-st.set_page_config(page_title="Ficha Freakster", page_icon="🎲", layout="wide")
+st.set_page_config(page_title="Ficha Freakster", layout="wide")
 
 st.markdown("""
 <style>
