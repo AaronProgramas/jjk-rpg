@@ -35,24 +35,36 @@ def pericias_ui(df):
 
     col_pericia = "Perícia" if "Perícia" in df.columns else "Pericia"
 
-    # Cabeçalho visual
-    h1, h2, h3 = st.columns([3, 2, 1])
-    h1.markdown("**Perícia**")
-    h2.markdown("**Atributo**")
-    h3.markdown("**Total**")
+    # divide o df igualmente em 2 blocos
+    n = len(df)
+    mid = (n + 1) // 2
+    bloco_esq = df.iloc[:mid].reset_index(drop=True)
+    bloco_dir = df.iloc[mid:].reset_index(drop=True)
 
-    # Linhas com botão no Total
-    for i, row in df[[col_pericia, "Atributo", "Total"]].reset_index(drop=True).iterrows():
-        c1, c2, c3 = st.columns([3, 2, 1])
-        c1.write(row[col_pericia])
-        c2.write(row["Atributo"])
-        # chave única mesmo se houver Totais repetidos
-        if c3.button(str(row["Total"]), key=f"roll_skill_{i}_{row[col_pericia]}", use_container_width=True):
-            st.session_state["skill_last_output"] = (
-                f"Perícia: {row[col_pericia]}",
-                rolar_pericia(row[col_pericia], row["Total"])
-            )
+    col_esq, col_dir = st.columns(2, gap="large")
 
+    def render_bloco(container, bloco_df, bloco_tag):
+        with container:
+            # Cabeçalho visual
+            h1, h2, h3 = st.columns([3, 2, 1])
+            h1.markdown("**Perícia**")
+            h2.markdown("**Atributo**")
+            h3.markdown("**Total**")
+
+            # Linhas com botão no Total
+            for i, row in bloco_df[[col_pericia, "Atributo", "Total"]].iterrows():
+                c1, c2, c3 = st.columns([3, 2, 1])
+                c1.write(row[col_pericia])
+                c2.write(row["Atributo"])
+                key = f"roll_skill_{bloco_tag}_{i}_{row[col_pericia]}"
+                if c3.button(str(row["Total"]), key=key, use_container_width=True):
+                    st.session_state["skill_last_output"] = (
+                        f"Perícia: {row[col_pericia]}",
+                        rolar_pericia(row[col_pericia], int(row["Total"]))
+                    )
+
+    render_bloco(col_esq, bloco_esq, "L")
+    render_bloco(col_dir, bloco_dir, "R")
 
 # ---------------------------
 # Utilitários
@@ -157,7 +169,7 @@ def show_result(title: str, data: dict):
             atk_total = data.get("Rolagem Acerto") or data.get("Ataque") or data.get("Acerto")
             cd_tr     = data.get("CD do TR") or data.get("CD")
             if atk_total is not None:
-                st.metric("Rolagem Ataque", atk_total)
+                st.metric("Total", atk_total)
             if cd_tr is not None:
                 st.metric("CD do TR", cd_tr)
 
@@ -267,21 +279,22 @@ df["Total"] = df["ModAtrib"] + df["LvlHalf"] + df["Maestria"] + df["Outros"]
 # ---------------------------
 # LAYOUT
 # ---------------------------
-st.title("Ficha - Frank Guggenheim")
+
+st.sidebar.title("Frank Guggenheim")
+
+st.sidebar.image('freak.jpeg')
+st.sidebar.subheader('Quem é O Homem?')
+st.sidebar.write('Frank Guggenheim, também conhecido como Freak, ou Freakster é um feiticeiro jujutsu focado em dar suporte para a sua equipe, garantindo que nenhum acerto crítico será proferido contra seus companheiros.')
+st.sidebar.write('')
+st.sidebar.write('Frank é atualmente o considerado o melhor usuário de energia reversa da história, tendo até mesmo reanimado os mortos.')
 
 # ----- Colunas principais
-col_freak, col_ficha, col_pericias, col_habs = st.columns([1, 1, 1, 1], gap="large")
+col_ficha, col_pericias, col_habs = st.columns([2, 3, 2], gap="large")
 
 # ----- Col Pericias
 with col_pericias:
     pericias_ui(df)
 # ----- Col Freakster
-with col_freak:
-    st.image('freak.jpeg')
-    st.subheader('Quem é O Homem?')
-    st.write('Frank Guggenheim, também conhecido como Freak, ou Freakster é um feiticeiro jujutsu focado em dar suporte para a sua equipe, garantindo que nenhum acerto crítico será proferido contra seus companheiros.')
-    st.write('')
-    st.write('Frank é atualmente o considerado o melhor usuário de energia reversa da história, tendo até mesmo reanimado os mortos.')
 
 # ----- Coluna Ficha (sidebar visual)
 with col_ficha:
@@ -316,7 +329,7 @@ with col_ficha:
         a2.write(f"**Int**: {Int} ({mod(Int):+d})")
         a2.write(f"**Sab**: {Sab} ({mod(Sab):+d})")
         a2.write(f"**Car**: {Car} ({mod(Car):+d})")
-        st.markdown("### 🧾 Histórico")
+    st.markdown("### 🧾 Histórico")
     
     if "history" in st.session_state and st.session_state.history:
         for item in st.session_state.history[:10]:
@@ -367,5 +380,3 @@ with col_habs:
         show_result(title, payload)
     else:
         st.caption("Clique no valor Total para rolar a perícia.")
-
-
